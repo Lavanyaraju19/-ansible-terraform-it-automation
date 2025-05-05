@@ -1,0 +1,5 @@
+role_separation: false
+hostgroup: "{{ group_names[0] }}"
+cluster_master: "{{play_hosts[0]}}"
+oracle_home_gi: "{% if configure_cluster %}{{ oracle_home_gi_cl }}{% else %}{{ oracle_home_gi_so }}{% endif %}"
+apply_patches_db: True

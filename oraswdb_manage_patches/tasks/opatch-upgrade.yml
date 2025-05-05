@@ -1,0 +1,49 @@
+- name: db-opatch | Check opatch dir
+  ansible.builtin.stat: path={{ oracle_home_db }}/OPatch
+  register: opatchdir
+
+- name: db-opatch | Check current opatch version
+  oracle_opatch:
+         oracle_home={{ oracle_home_db }}
+         state=opatchversion
+  register: current_opatch_version
+  become: yes
+  become_user: "{{ oracle_user }}" 
+  tags: current_opatch_version
+  when: opatchdir.stat.exists and db_homes_config[dbh.home]['opatch_minversion'] is defined
+
+- name: db-opatch | Backup existing OPatch directory
+  command: mv "{{ oracle_home_db }}/OPatch" "{{ oracle_home_db }}/OPatch{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}"
+  with_items: "{{ oracle_opatch_patch }}"
+  when: opatchdir.stat.exists and apply_patches_db and db_homes_config[dbh.home]['opatch_minversion'] is defined and (current_opatch_version.msg is version_compare(db_homes_config[dbh.home]['opatch_minversion'], '<'))
+  become: yes
+  become_user: "{{ oracle_user }}"  
+  tags:
+    - backupopatch
+
+- name: db-opatch | Extract OPatch to DB Home (from local/nfs)
+  ansible.builtin.unarchive:
+      src={{ item.filename }}
+      dest={{ oracle_home_db }}
+      owner={{ oracle_user }}
+      group={{ oracle_group }}
+      remote_src=yes
+  with_items: "{{ oracle_opatch_patch }}"
+  become: yes
+  become_user: "{{ oracle_user }}"
+  when:
+    - ora_binary_location in ['local','nfs']
+    - not opatchdir.stat.exists or (current_opatch_version.msg is defined and current_opatch_version.msg is version_compare(db_homes_config[dbh.home]['opatch_minversion'], '<'))
+
+- name: db-opatch | Extract OPatch to DB Home (from remote location)
+  ansible.builtin.unarchive:
+      src={{ item.filename }}
+      dest={{ oracle_home_db }}
+      owner={{ oracle_user }}
+      group={{ oracle_group }}      
+  with_items: "{{ oracle_opatch_patch }}"
+  become: yes
+  become_user: "{{ oracle_user }}"
+  when:
+    - ora_binary_location in ['remote']
+    - not opatchdir.stat.exists or (current_opatch_version.msg is defined and current_opatch_version.msg is version_compare(db_homes_config[dbh.home]['opatch_minversion'], '<'))

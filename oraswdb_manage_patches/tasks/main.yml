@@ -1,0 +1,20 @@
+- name: db-opatch | check if GI is installed
+  stat: path=/etc/oracle/olr.loc
+  register: olrloc
+
+- name: Creating NFS filesystem from nfshost.
+  ibm.power_aix.filesystem:
+    device: "{{ ora_nfs_device }}"
+    nfs_server: "{{ ora_nfs_host }}"
+    filesystem: "{{ ora_nfs_filesystem }}"
+    state: present
+  become: yes
+  when: ora_binary_location == 'nfs'
+
+- include_tasks: db-home-patch.yml
+  with_items:
+      - "{{ db_homes_installed }}"
+  loop_control:
+    loop_var: dbh
+  when: db_homes_installed is defined and dbh.state == 'present' and dbh.apply_patches
+  tags: autopatch

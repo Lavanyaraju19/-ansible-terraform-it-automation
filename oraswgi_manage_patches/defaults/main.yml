@@ -1,0 +1,7 @@
+hostgroup: "{{ group_names[0] }}"
+cluster_master: "{{play_hosts[0]}}"
+patch_before_rootsh: True
+oracle_hostname: "{{ ansible_fqdn }}"
+ocm_response_file: "{{ oracle_patch_stage }}/{{ oracle_install_version_gi }}/ocm.rsp"
+oracle_home_gi: "{% if configure_cluster %}{{ oracle_home_gi_cl }}{% else %}{{ oracle_home_gi_so }}{% endif %}"
+apply_patches_gi: True

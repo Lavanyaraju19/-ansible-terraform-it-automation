@@ -1,0 +1,35 @@
+namespace: "ibm"
+
+name: "power_aix_oracle_dba"
+
+version: 2.0.6
+
+readme: "README.md"
+
+authors:
+  - "Shiva Laveti <shiva.laveti@ibm.com>"
+  - "Naved Afroz <naved.afroz1@ibm.com>"
+
+license:
+  - "Apache-2.0"
+
+license_file: ''
+
+tags:
+  [
+    power,
+    aix,
+    ibm,
+    oracle,
+    dba
+  ]
+
+dependencies: {}
+
+repository: "https://github.com/IBM/ansible-power-aix-oracle-dba"
+
+documentation: "https://github.com/IBM/ansible-power-aix-oracle-dba/tree/main/docs"
+
+homepage: "https://github.com/IBM/ansible-power-aix-oracle-dba"
+
+issues: "https://github.com/IBM/ansible-power-aix-oracle-dba/issues"

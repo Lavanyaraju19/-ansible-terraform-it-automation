@@ -1,0 +1,63 @@
+- name: db-opatch | Create patch-base directory (version specific)
+  file:
+     dest={{ oracle_patch_stage }}/{{ dbh.db_version }}
+     mode=775
+     owner={{ oracle_user }}
+     group={{ oracle_group }}
+     state=directory
+  with_items: "{{ db_homes_installed }}"
+  when: apply_patches_db
+
+- name: db-opatch | Extract DB patch files to patch base (from local|nfs) for opatchauto
+  ansible.builtin.unarchive:
+      src={{ item[0].filename }}
+      dest={{ oracle_patch_stage }}/{{ dbh.db_version }}
+      creates={{ oracle_patch_stage }}/{{ dbh.db_version }}/{{ item[0].creates | default (omit) }}
+      remote_src=True     
+  with_nested:
+     - "{{ oracle_sw_patches }}"
+     - "{{ db_homes_installed }}"
+     - "{{ db_homes_config[dbh.home]['opatchauto'] }}"
+  become: yes
+  become_user: "{{ oracle_user }}"       
+  when: db_homes_config[dbh.home]['opatchauto'] and item[0].patchid == item[2].patchid and ora_binary_location in ['local','nfs']
+
+- name: db-opatch | Extract DB patch files to patch base (from remote) for opatchauto
+  ansible.builtin.unarchive:
+      src={{ item[0].filename }}
+      dest={{ oracle_patch_stage }}/{{ dbh.db_version }}
+      creates={{ oracle_patch_stage }}/{{ dbh.db_version }}/{{ item[0].creates | default (omit) }}
+  with_nested:
+     - "{{ oracle_sw_patches }}"
+     - "{{ db_homes_installed }}"
+     - "{{ db_homes_config[dbh.home]['opatchauto'] }}"
+  become: yes
+  become_user: "{{ oracle_user }}"       
+  when: db_homes_config[dbh.home]['opatchauto'] is defined and item[0].patchid == item[2].patchid and ora_binary_location in ['remote']
+
+- name: db-opatch | Extract DB patch files to patch base (from local|nfs) for opatch
+  ansible.builtin.unarchive:
+      src={{ item[0].filename }}
+      dest={{ oracle_patch_stage }}/{{ dbh.db_version }}
+      creates={{ oracle_patch_stage }}/{{ dbh.db_version }}/{{ item[0].creates | default (omit) }}
+      remote_src=True
+  with_nested:
+     - "{{ oracle_sw_patches }}"
+     - "{{ db_homes_installed }}"
+     - "{{ db_homes_config[dbh.home]['opatch'] }}"
+  become: yes
+  become_user: "{{ oracle_user }}"       
+  when: db_homes_config[dbh.home]['opatch'] and item[0].patchid == item[2].patchid and ora_binary_location in ['local','nfs']
+
+- name: db-opatch | Extract DB patch files to patch base (from remote) for opatch
+  ansible.builtin.unarchive:
+      src={{ item[0].filename }}
+      dest={{ oracle_patch_stage }}/{{ dbh.db_version }}
+      creates={{ oracle_patch_stage }}/{{ dbh.db_version }}/{{ item[0].creates | default (omit) }}
+  with_nested:
+     - "{{ oracle_sw_patches }}"
+     - "{{ db_homes_installed }}"
+     - "{{ db_homes_config[dbh.home]['opatch'] }}"
+  become: yes
+  become_user: "{{ oracle_user }}"       
+  when: db_homes_config[dbh.home]['opatch'] is defined and item[0].patchid == item[2].patchid and ora_binary_location in ['remote']
